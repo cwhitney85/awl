@@ -4,20 +4,22 @@
 |%
 +$  versioned-state
   $%  state-0
+      state-1
   ==
 +$  state-0  [%0 page=@t]
++$  state-1  [%1 page=resource:schooner]
 +$  card  card:agent:gall
 --
 %-  agent:dbug
 ^-  agent:gall
-=|  state-0
+=|  state-1
 =*  state  -
 |_  =bowl:gall
 +*  this  .
     def  ~(. (default-agent this %.n) bowl)
 ++  on-init
   ^-  (quip card _this)
-  :_  this(page 'Hello World')
+  :_  this(page [%html feature-ui])
   :~
     :*  %pass  /eyre/connect  %arvo  %e
         %connect  `/apps/feature  %feature
@@ -33,7 +35,8 @@
   ^-  (quip card _this)
   =/  old  !<(versioned-state old-state)
   ?-  -.old
-    %0  `this(state old)
+    %1  `this(state old)
+    %0  `this(state 1+[%html feature-ui])
   ==
 ::
 ++  on-poke
@@ -57,17 +60,6 @@
     ?+    method.request.inbound-request  
       [(send [405 ~ [%stock ~]]) state]
       ::
-        %'POST'
-      ?.  authenticated.inbound-request
-        :_  state
-        %-  send
-        [302 ~ [%login-redirect './apps/feature']]
-      ?~  body.request.inbound-request
-        [(send [405 ~ [%stock ~]]) state]
-      =/  json  (de-json:html q.u.body.request.inbound-request)
-      =/  action  (dejs-action +.json)
-      (handle-action action) 
-      :: 
         %'GET'
       ?+    site  
           :_  state 
@@ -77,23 +69,7 @@
         :_  state
         %-  send
         :+  200  ~  
-        :-  %html  page
-        ::
-          [%apps %feature ~]
-        ?.  authenticated.inbound-request
-          :_  state
-          %-  send
-          [302 ~ [%login-redirect './apps/feature']]
-        :_  state
-        %-  send
-        :+  200  ~  
-        :-  %html  feature-ui
-        ::
-        ::    [%apps %feature %state ~]
-        ::  :_  state
-        ::  %-  send
-        ::  :+  200  ~ 
-        ::  [%json (enjs-state +.state)]
+        page
       == 
     ==
   ::
@@ -105,23 +81,6 @@
   ::      (ship +:state)
   ::    (numb 0)
   ::
-  ++  dejs-action
-    =,  dejs:format
-    |=  jon=json
-    ^-  action:feature
-    %.  jon
-    %-  of
-    :~  new-page+so
-    ==
-  ::
-  ++  handle-action
-    |=  =action:feature
-    ^-  (quip card _state)
-    ?-    -.action
-        %new-page
-      ?>  =(src.bowl our.bowl)
-      `state(page html:action)
-    ==
   --
 ++  on-peek  on-peek:def
 ++  on-watch
@@ -131,9 +90,8 @@
       [%http-response *]
     `this
   ==
-::
 ++  on-leave  on-leave:def
 ++  on-agent  on-agent:def
 ++  on-arvo  on-arvo:def
 ++  on-fail  on-fail:def
---
+--              
